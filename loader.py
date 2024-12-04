@@ -1,12 +1,18 @@
-# from aiogram.fsm.storage.memory import MemoryStorage
-# from aiogram.client.default import DefaultBotProperties
-# from aiogram.enums import ParseMode
+import logging
 from aiogram import Bot, Dispatcher
 from aiogram.client.session.aiohttp import AiohttpSession
+from aiogram.fsm.storage.redis import RedisStorage
+from utils.config import BOT_TOKEN, REDIS_HOST, REDIS_PORT, PROXY_CONFIG
 
-from utils.config import BOT_TOKEN, PROXY_CONFIG
 session = AiohttpSession(**PROXY_CONFIG) if PROXY_CONFIG["proxy"] else None
 bot = Bot(token=BOT_TOKEN, session=session)
 
-# bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher()
+storage = RedisStorage.from_url(f"redis://{REDIS_HOST}:{REDIS_PORT}")
+
+dp = Dispatcher( storage=storage)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format=u"%(filename)s [LINE:%(lineno)d] #%(levelname)-8s [%(asctime)s]  %(message)s",
+    datefmt="%d-%b-%y %H:%M:%S",
+)

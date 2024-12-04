@@ -14,18 +14,16 @@ dp.include_router(router)
 db = PgConn()
 
 @router.message(CommandStart())
-async def start_registration(message: types.Message):
+async def start_registration(message: types.Message, state: FSMContext):
     kb_list = [
         [KeyboardButton(text="🇷🇺 Русский")],
         [KeyboardButton(text="🇺🇿 O'zbekcha")]
     ]
     keyboard = ReplyKeyboardMarkup(keyboard=kb_list, resize_keyboard=True, one_time_keyboard=True)
     await message.answer("Пожалуйста, выберите язык / Iltimos, tilni tanlang:", reply_markup=keyboard)
-    # await state.set_state(Registration.language)
+    await state.set_state(Registration.language)
 
 @router.message(Registration.language)
-
-
 async def set_language(message: types.Message, state: FSMContext):
     lang = "ru" if message.text == "Русский" else "uz"
     await state.update_data(language=lang)
@@ -46,7 +44,6 @@ async def set_name(message: types.Message, state: FSMContext):
     else:
         await message.answer("Имя должно содержать от 2 до 50 символов. Попробуйте снова.")
 
-# @router.message(content_types=types.ContentType.CONTACT, state=Registration.phone)
 @router.message(Registration.phone)
 async def set_phone(message: types.Message, state: FSMContext):
     if message.contact and message.contact.phone_number:
@@ -58,14 +55,14 @@ async def set_phone(message: types.Message, state: FSMContext):
         print(otp)
 
         # Сохраняем SMS-код в базе данных
-        db.conn.execute(
-            text("INSERT INTO sms_verifications (phone, otp, expires_at) VALUES (:phone, :otp, :expires_at)"),
-            {"phone": phone, "otp": otp, "expires_at": expires_at}
-        )
+        success = db.sms_verify(phone, otp, expires_at)
 
-        await state.update_data(phone=phone, otp=otp)
-        await message.answer(f"Мы отправили SMS с кодом на номер {phone}. Введите код:")
-        await state.set_state(Registration.phone)
+        if success:
+            await state.update_data(phone=phone, otp=otp)
+            await message.answer(f"Мы отправили SMS с кодом на номер {phone}. Введите код:")
+            await state.set_state(Registration.confirmation)
+        else:
+            await message.answer("Произошла ошибка при отправке SMS.")
     else:
         await message.answer("Пожалуйста, отправьте корректный номер телефона.")
 

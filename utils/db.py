@@ -1,5 +1,6 @@
-from sqlalchemy import create_engine,text
+from sqlalchemy import create_engine, text
 from utils.config import DB_URL
+from datetime import datetime
 
 class PgConn:
     def __init__(self):
@@ -97,3 +98,12 @@ class PgConn:
             valid_until TIMESTAMP NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );""")
+
+    def sms_verify(self, phone_number: str, otp: str, expires_at: datetime):
+        """Inserting OTP verification record into the database."""
+        with self.conn.connect() as connection:
+            connection.execute(
+                text("INSERT INTO sms_verifications (phone, otp, expires_at) VALUES (:phone, :otp, :expires_at)"),
+                {"phone": phone_number, "otp": otp, "expires_at": expires_at}
+            )
+        return True

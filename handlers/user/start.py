@@ -2,9 +2,9 @@ from aiogram import Router, F
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state
-from bot.states.user import Registration
-from bot.services.database import save_user
-from bot.services.sms import send_sms
+from states.user import Registration
+from services.database import save_user
+from services.sms import send_sms
 
 router = Router()
 

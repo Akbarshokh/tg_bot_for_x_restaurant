@@ -1,7 +1,8 @@
 import asyncio
 import logging
 import handlers
-from loader import dp, bot
+from handlers.user.start import dp
+from loader import bot
 
 async def main():
     try:

@@ -6,28 +6,33 @@ from states.user import Registration
 from utils.db import PgConn
 from datetime import datetime, timedelta
 from sqlalchemy import text
+from aiogram.filters import CommandStart
 
+from loader import dp
 router = Router()
+dp.include_router(router)
 db = PgConn()
 
-@router.message(commands='start')
-async def start_registration(message: types.Message, state: FSMContext):
+@router.message(CommandStart())
+async def start_registration(message: types.Message):
     kb_list = [
         [KeyboardButton(text="🇷🇺 Русский")],
         [KeyboardButton(text="🇺🇿 O'zbekcha")]
     ]
     keyboard = ReplyKeyboardMarkup(keyboard=kb_list, resize_keyboard=True, one_time_keyboard=True)
     await message.answer("Пожалуйста, выберите язык / Iltimos, tilni tanlang:", reply_markup=keyboard)
-    await state.set_state(Registration.language)
+    # await state.set_state(Registration.language)
 
-@router.message(state=Registration.language)
+@router.message(Registration.language)
+
+
 async def set_language(message: types.Message, state: FSMContext):
     lang = "ru" if message.text == "Русский" else "uz"
     await state.update_data(language=lang)
     await message.answer("Введите ваше имя / Ismingizni kiriting:", reply_markup=types.ReplyKeyboardRemove())
     await state.set_state(Registration.name)
 
-@router.message(state=Registration.name)
+@router.message(Registration.name)
 async def set_name(message: types.Message, state: FSMContext):
     name = message.text.strip()
     if 2 <= len(name) <= 50:
@@ -41,7 +46,8 @@ async def set_name(message: types.Message, state: FSMContext):
     else:
         await message.answer("Имя должно содержать от 2 до 50 символов. Попробуйте снова.")
 
-@router.message(content_types=types.ContentType.CONTACT, state=Registration.phone)
+# @router.message(content_types=types.ContentType.CONTACT, state=Registration.phone)
+@router.message(Registration.phone)
 async def set_phone(message: types.Message, state: FSMContext):
     if message.contact and message.contact.phone_number:
         phone = message.contact.phone_number
@@ -63,7 +69,7 @@ async def set_phone(message: types.Message, state: FSMContext):
     else:
         await message.answer("Пожалуйста, отправьте корректный номер телефона.")
 
-@router.message(state=Registration.phone)
+@router.message(Registration.phone)
 async def verify_code(message: types.Message, state: FSMContext):
     data = await state.get_data()
     otp = data.get('otp')

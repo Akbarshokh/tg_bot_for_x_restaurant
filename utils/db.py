@@ -1,16 +1,12 @@
 from sqlalchemy import create_engine,text
-from utils.config import POSTGRES
-
-
+from utils.config import DB_URL
 
 class PgConn:
-
     def __init__(self):
-        self.conn = create_engine(POSTGRES)
+        self.conn = create_engine(DB_URL)
     
     def create_tables(self):
-        self.conn.execute("CREATE EXTENSION IF NOT EXISTS 'uuid-ossp';")
-
+        self.conn.execute("""CREATE EXTENSION IF NOT EXISTS "uuid-ossp";""")
 
         self.conn.execute("""CREATE TABLE IF NOT EXISTS users (
             id UUID DEFAULT uuid_generate_v4() NOT NULL PRIMARY KEY,

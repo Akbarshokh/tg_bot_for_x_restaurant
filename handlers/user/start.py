@@ -1,110 +1,104 @@
-from aiogram import Router, F
-from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+import random
+from aiogram import Router, types
+from aiogram.types import  ReplyKeyboardMarkup, KeyboardButton
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import default_state
 from states.user import Registration
-from services.database import save_user
-from services.sms import send_sms
+from utils.db import PgConn
+from datetime import datetime, timedelta
+from sqlalchemy import text
 
 router = Router()
+db = PgConn()
 
-# Переводы сообщений
-translations = {
-    "choose_language": {
-        "ru": "Выберите язык:",
-        "uz": "Tilni tanlang:"
-    },
-    "enter_name": {
-        "ru": "Введите ваше имя:",
-        "uz": "Ismingizni kiriting:"
-    },
-    "enter_phone": {
-        "ru": "Отправьте ваш номер телефона:",
-        "uz": "Telefon raqamingizni yuboring:"
-    },
-    "verify_code": {
-        "ru": "Мы отправили вам код подтверждения. Введите его:",
-        "uz": "Tasdiqlash kodini yubordik. Uni kiriting:"
-    },
-    "registration_complete": {
-        "ru": "Регистрация завершена! Добро пожаловать!",
-        "uz": "Ro'yxatdan o'tish tugallandi! Xush kelibsiz!"
-    }
-}
-
-def get_translation(key, language):
-    return translations.get(key, {}).get(language, key)
-
-# Начало регистрации - выбор языка
-@router.message(F.text == "/start", state=default_state)
-async def start_registration(message: Message, state: FSMContext):
-    keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="Русский", callback_data="lang_ru"),
-             InlineKeyboardButton(text="O‘zbek", callback_data="lang_uz")]
-        ]
-    )
-    await message.answer("Выберите язык / Tilni tanlang:", reply_markup=keyboard)
+@router.message(commands='start')
+async def start_registration(message: types.Message, state: FSMContext):
+    kb_list = [
+        [KeyboardButton(text="🇷🇺 Русский")],
+        [KeyboardButton(text="🇺🇿 O'zbekcha")]
+    ]
+    keyboard = ReplyKeyboardMarkup(keyboard=kb_list, resize_keyboard=True, one_time_keyboard=True)
+    await message.answer("Пожалуйста, выберите язык / Iltimos, tilni tanlang:", reply_markup=keyboard)
     await state.set_state(Registration.language)
 
-# Обработка выбора языка
-@router.callback_query(Registration.language)
-async def set_language(callback_query, state: FSMContext):
-    language = callback_query.data.split("_")[1]  # Получаем "ru" или "uz"
-    await state.update_data(language=language)
-    await callback_query.message.answer(get_translation("enter_name", language))
+@router.message(state=Registration.language)
+async def set_language(message: types.Message, state: FSMContext):
+    lang = "ru" if message.text == "Русский" else "uz"
+    await state.update_data(language=lang)
+    await message.answer("Введите ваше имя / Ismingizni kiriting:", reply_markup=types.ReplyKeyboardRemove())
     await state.set_state(Registration.name)
 
-# Ввод имени
-@router.message(Registration.name)
-async def enter_name(message: Message, state: FSMContext):
+@router.message(state=Registration.name)
+async def set_name(message: types.Message, state: FSMContext):
     name = message.text.strip()
-    if len(name) < 2 or len(name) > 50:
-        language = (await state.get_data()).get("language", "ru")
-        await message.answer(get_translation("enter_name", language))
-        return
+    if 2 <= len(name) <= 50:
+        await state.update_data(name=name)
+        kb_list =[
+           [KeyboardButton(text="📱 Отправить номер телефона", request_contact=True, one_time_keyboard=True)]
+        ]
+        keyboard = ReplyKeyboardMarkup(keyboard=kb_list, resize_keyboard=True)
+        await message.answer("Пожалуйста, отправьте ваш номер телефона:", reply_markup=keyboard)
+        await state.set_state(Registration.phone)
+    else:
+        await message.answer("Имя должно содержать от 2 до 50 символов. Попробуйте снова.")
 
-    await state.update_data(name=name)
-    language = (await state.get_data()).get("language", "ru")
-    await message.answer(get_translation("enter_phone", language))
-    await state.set_state(Registration.phone)
+@router.message(content_types=types.ContentType.CONTACT, state=Registration.phone)
+async def set_phone(message: types.Message, state: FSMContext):
+    if message.contact and message.contact.phone_number:
+        phone = message.contact.phone_number
+        otp = str(random.randint(100000, 999999))
+        expires_at = datetime.now() + timedelta(minutes=5)
 
-# Ввод номера телефона
-@router.message(Registration.phone, F.contact)
-async def enter_phone(message: Message, state: FSMContext):
-    phone = message.contact.phone_number
-    await state.update_data(phone=phone)
+        # код--временно
+        print(otp)
 
-    # Отправка SMS
-    otp_code = await send_sms(phone)
-    if not otp_code:
-        await message.answer("Не удалось отправить SMS. Попробуйте снова позже.")
-        return
+        # Сохраняем SMS-код в базе данных
+        db.conn.execute(
+            text("INSERT INTO sms_verifications (phone, otp, expires_at) VALUES (:phone, :otp, :expires_at)"),
+            {"phone": phone, "otp": otp, "expires_at": expires_at}
+        )
 
-    await state.update_data(otp=otp_code)
-    language = (await state.get_data()).get("language", "ru")
-    await message.answer(get_translation("verify_code", language))
-    await state.set_state(Registration.confirmation)
+        await state.update_data(phone=phone, otp=otp)
+        await message.answer(f"Мы отправили SMS с кодом на номер {phone}. Введите код:")
+        await state.set_state(Registration.phone)
+    else:
+        await message.answer("Пожалуйста, отправьте корректный номер телефона.")
 
-# Подтверждение телефона
-@router.message(Registration.confirmation)
-async def verify_phone(message: Message, state: FSMContext):
-    user_otp = message.text.strip()
+@router.message(state=Registration.phone)
+async def verify_code(message: types.Message, state: FSMContext):
     data = await state.get_data()
+    otp = data.get('otp')
 
-    if user_otp != data["otp"]:
-        language = data.get("language", "ru")
-        await message.answer(get_translation("verify_code", language))
-        return
+    if message.text == otp:
+        user_data = {
+            "telegram_id": message.from_user.id,
+            "name": data['name'],
+            "phone": data['phone'],
+            "language": data['language']
+        }
 
-    # Сохраняем пользователя в базу данных
-    await save_user(
-        telegram_id=message.from_user.id,
-        name=data["name"],
-        phone=data["phone"],
-        language=data["language"]
+        # Сохранение пользователя в базу данных
+        db.conn.execute(
+            text("INSERT INTO users (telegram_id, name, phone, language) VALUES (:telegram_id, :name, :phone, :language)"),
+            user_data
+        )
+
+        await message.answer("Регистрация успешно завершена! Добро пожаловать!")
+        await state.clear()
+    else:
+        await message.answer("Неверный код. Попробуйте снова.")
+
+
+@router.message(lambda message: message.text.lower() in ["повторить код", "повторная отправка"])
+async def resend_code(message: types.Message, state: FSMContext):
+    data = await state.get_data()
+    phone = data.get('phone')
+    otp = str(random.randint(100000, 999999))
+    expires_at = datetime.now() + timedelta(minutes=5)
+
+    # Обновляем код в базе данных
+    db.conn.execute(
+        text("UPDATE sms_verifications SET otp=:otp, expires_at=:expires_at WHERE phone=:phone"),
+        {"otp": otp, "expires_at": expires_at, "phone": phone}
     )
-    await state.clear()
 
-    language = data["language"]
-    await message.answer(get_translation("registration_complete", language))
+    await message.answer(f"Новый код отправлен на номер {phone}. Проверьте SMS.")

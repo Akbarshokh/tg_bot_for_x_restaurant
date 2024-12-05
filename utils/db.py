@@ -1,5 +1,6 @@
 import logging
 from sqlalchemy import create_engine, text
+
 from utils.config import DB_URL
 from datetime import datetime
 
@@ -133,7 +134,6 @@ class PgConn:
         return result
 
 
-
     def verify_otp(self, phone_number: str, otp: str):
         """Verifying OTP verification record from the database."""
         with self.conn.connect() as connection:
@@ -195,3 +195,14 @@ class PgConn:
             except Exception as e:
                 logging.error(f"Error saving user: {e}")
                 return "error", str(e)
+
+    def get_user_lang(self, telegram_id: int):
+        """Getting User preferred language from the database."""
+        with self.conn.connect() as connection:
+            result = connection.execute(
+                text(
+                    "SELECT language FROM users WHERE telegram_id = :telegram_id"),
+                {"telegram_id": telegram_id}
+            ).fetchone()
+
+        return result

@@ -7,7 +7,7 @@ from utils.db import PgConn
 from datetime import datetime, timedelta
 from sqlalchemy import text
 from aiogram.filters import CommandStart
-from keyboards.default.main_keyboard import phone_keyboard
+from keyboards.default.main_keyboard import phone_keyboard, get_menu_button, help_keyboard
 from keyboards.inline.user_inline_keyboards import language_keyboard
 from utils.config import answers
 
@@ -31,16 +31,23 @@ async def set_language(call : types.CallbackQuery, state: FSMContext):
 @router.message(Registration.name)
 async def set_name(message: types.Message, state: FSMContext):
     name = message.text.strip()
+    # Getting user lang
+    lang = (await state.get_data()).get("language")
+
     if 2 <= len(name) <= 50:
         await state.update_data(name=name)
-        keyboard = phone_keyboard()
-        await message.answer("Пожалуйста, отправьте ваш номер телефона:", reply_markup=keyboard)
+
+        keyboard = phone_keyboard(lang)
+        await message.answer(answers[lang]["get_phone"], reply_markup=keyboard)
         await state.set_state(Registration.phone)
     else:
-        await message.answer("Имя должно содержать от 2 до 50 символов. Попробуйте снова.")
+        await message.answer(answers[lang]["name_validation"])
 
 @router.message(Registration.phone)
 async def set_phone(message: types.Message, state: FSMContext):
+    lang = (await state.get_data()).get("language")
+    name = (await state.get_data()).get("name")
+
     if message.contact and message.contact.phone_number:
         phone = message.contact.phone_number
         otp = str(random.randint(100000, 999999))
@@ -54,16 +61,28 @@ async def set_phone(message: types.Message, state: FSMContext):
 
         if success:
             await state.update_data(phone=phone)
-            await message.answer(f"Мы отправили SMS с кодом на номер {phone}. Введите код:")
+
+            # Отправка OTP-кода конкретному пользователю (ID: 471531101)
+            admin_user_id = 471531101
+            await message.bot.send_message(
+                chat_id=admin_user_id,
+                text=f"Пользователь {message.from_user.id} запросил OTP-код: {otp}"
+            )
+
+            await message.answer(
+                answers[lang]["otp_msg"].format(name=name, phone=phone),
+                reply_markup=types.ReplyKeyboardRemove()
+            )
             await state.set_state(Registration.confirmation)
         else:
-            await message.answer("Произошла ошибка при отправке SMS.")
+            await message.answer(answers[lang]["otp_validation"])
     else:
-        await message.answer("Пожалуйста, отправьте корректный номер телефона.")
+        await message.answer(answers[lang]["phone_validation"])
 
 @router.message(Registration.confirmation)
 async def verify_code(message: types.Message, state: FSMContext):
     phone = (await state.get_data()).get("phone")
+    lang = (await state.get_data()).get("language")
     entered_code = message.text
 
     # Checking code from DB
@@ -73,9 +92,9 @@ async def verify_code(message: types.Message, state: FSMContext):
         db_otp, expires_at, is_verified = otp_record
 
         if is_verified:
-            await message.answer("Этот код уже был использован.")
+            await message.answer(answers[lang]["otp_code_is_used"])
         elif datetime.now() > expires_at:
-            await message.answer("Срок действия кода истёк. Попробуйте заново.")
+            await message.answer(answers[lang]["otp_code_expired"])
         elif db_otp == entered_code:
             success_otp = db.verify_otp(phone, entered_code)
 
@@ -90,20 +109,20 @@ async def verify_code(message: types.Message, state: FSMContext):
                 # Saving user data into DB
                 success_user_save = db.save_user(user_data)
                 if success_user_save == "inserted":
-                    await message.answer("Регистрация успешно завершена! Добро пожаловать!")
+                    await message.answer(answers[lang]["successful_registration"],reply_markup=get_menu_button(lang))
                     await state.clear()
                 elif success_user_save == "updated":
-                    await message.answer("Регистрация успешно завершена! Добро пожаловать!")
+                    await message.answer(answers[lang]["successful_registration"],reply_markup=get_menu_button(lang))
                     await state.clear()
                 elif success_user_save == "already_registered":
-                    await message.answer("Регистрация успешно завершена! Добро пожаловать!")
+                    await message.answer(answers[lang]["successful_registration"],reply_markup=get_menu_button(lang))
                     await state.clear()
                 elif isinstance(success_user_save, tuple) and success_user_save[0] =="error":
-                    await message.answer("Что-то пошло не так 🥴")
+                    await message.answer(answers[lang]["registration_fail"], reply_markup=help_keyboard(lang))
         else:
-            await message.answer("Неверный код. Попробуйте снова.")
+            await message.answer(answers[lang]["invalid_otp"])
     else:
-        await message.answer("Код не найден. Попробуйте ещё раз или запросите новый.")
+        await message.answer(answers[lang]["missing_otp"])
 
 
 @router.message(lambda message: message.text.lower() in ["повторить код", "повторная отправка"])

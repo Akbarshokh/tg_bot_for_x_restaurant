@@ -1,8 +1,29 @@
-{"uz" : {
-    "get_name" : "Ismingizni kiriting"
+{ "uz": {
+        "get_name": "Ismingizni kiriting",
+        "get_phone": "Iltimos, telefon raqamingizni yuboring:",
+        "name_validation": "Ism 2 dan 50 gacha belgi bo‘lishi kerak. Qayta urinib ko‘ring.",
+        "otp_msg": "{name} biz {phone} raqamiga SMS-kod yubordik. Kodni kiriting:",
+        "otp_send_fail": "SMS yuborishda xatolik yuz berdi.",
+        "phone_validation": "Iltimos, to‘g‘ri telefon raqamini yuboring.",
+        "otp_code_is_used": "Ushbu kod avval ishlatilgan.",
+        "otp_code_expired": "Kodning amal qilish muddati tugadi. Qayta urinib ko‘ring.",
+        "invalid_otp": "Noto‘g‘ri kod. Qayta urinib ko‘ring.",
+        "missing_otp": "Kod topilmadi. Yana bir bor urinib ko‘ring yoki yangi kodni so‘rang.",
+        "successful_registration": "Ro‘yxatdan o‘tish muvaffaqiyatli yakunlandi! Xush kelibsiz!",
+        "registration_fail": "Nimadir noto‘g‘ri ketdi \uD83E\uDD74"
 },
 "ru" : {
-    "get_name" : "Введите ваше имя"
-}
-
+    "get_name" : "Введите ваше имя",
+    "get_phone" : "Пожалуйста, отправьте ваш номер телефона:",
+    "name_validation" : "Имя должно содержать от 2 до 50 символов. Попробуйте снова.",
+    "otp_msg": "{name} мы отправили SMS с кодом на номер {phone}. Введите код:",
+    "otp_send_fail": "Произошла ошибка при отправке SMS.",
+    "phone_validation": "Пожалуйста, отправьте корректный номер телефона.",
+    "otp_code_is_used": "Этот код уже был использован.",
+    "otp_code_expired": "Срок действия кода истёк. Попробуйте заново.",
+    "invalid_otp": "Неверный код. Попробуйте снова.",
+    "missing_otp": "Код не найден. Попробуйте ещё раз или запросите новый.",
+    "successful_registration": "Регистрация успешно завершена! Добро пожаловать!",
+    "registration_fail": "Что-то пошло не так \uD83E\uDD74"
+    }
 }

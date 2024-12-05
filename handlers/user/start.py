@@ -7,6 +7,7 @@ from utils.db import PgConn
 from datetime import datetime, timedelta
 from sqlalchemy import text
 from aiogram.filters import CommandStart
+from keyboards.inline.user_inline_keyboards import language_keyboard
 
 from loader import dp
 router = Router()
@@ -14,21 +15,31 @@ dp.include_router(router)
 db = PgConn()
 
 @router.message(CommandStart())
-async def start_registration(message: types.Message, state: FSMContext):
-    kb_list = [
-        [KeyboardButton(text="🇷🇺 Русский")],
-        [KeyboardButton(text="🇺🇿 O'zbekcha")]
-    ]
-    keyboard = ReplyKeyboardMarkup(keyboard=kb_list, resize_keyboard=True, one_time_keyboard=True)
-    await message.answer("Пожалуйста, выберите язык / Iltimos, tilni tanlang:", reply_markup=keyboard)
-    await state.set_state(Registration.language)
+async def start_registration(message: types.Message):
+    # kb_list = [
+    #     [KeyboardButton(text="🇷🇺 Русский")],
+    #     [KeyboardButton(text="🇺🇿 O'zbekcha")]
+    # ]
+    # keyboard = ReplyKeyboardMarkup(keyboard=kb_list, resize_keyboard=True, one_time_keyboard=True)
 
-@router.message(Registration.language)
-async def set_language(message: types.Message, state: FSMContext):
-    lang = "ru" if message.text == "Русский" else "uz"
-    await state.update_data(language=lang)
-    await message.answer("Введите ваше имя / Ismingizni kiriting:", reply_markup=types.ReplyKeyboardRemove())
+    await message.answer("Пожалуйста, выберите язык / Iltimos, tilni tanlang:", reply_markup=language_keyboard)
+    # await state.set_state(Registration.language)
+
+# @router.message(Registration.language)
+# async def set_language(message: types.Message, state: FSMContext):
+#     lang = "ru" if message.text == "Русский" else "uz"
+#     await state.update_data(language=lang)
+#     await message.answer("Введите ваше имя / Ismingizni kiriting:", reply_markup=types.ReplyKeyboardRemove())
+#     await state.set_state(Registration.name)
+
+@router.callback_query(lambda c: c.data in ["ru", "uz"])
+async def set_language(call : types.CallbackQuery, state: FSMContext):
+    lang = call.data
+    await call.message.answer("Введите ваше имя / Ismingizni kiriting:", reply_markup=types.ReplyKeyboardRemove())
     await state.set_state(Registration.name)
+    
+
+
 
 @router.message(Registration.name)
 async def set_name(message: types.Message, state: FSMContext):

@@ -37,6 +37,7 @@ async def set_language(call : types.CallbackQuery, state: FSMContext):
     lang = call.data
     await call.message.answer("Введите ваше имя / Ismingizni kiriting:", reply_markup=types.ReplyKeyboardRemove())
     await state.set_state(Registration.name)
+    await call.message.delete()
     
 
 

@@ -22,7 +22,7 @@ async def start_registration(message: types.Message):
     # ]
     # keyboard = ReplyKeyboardMarkup(keyboard=kb_list, resize_keyboard=True, one_time_keyboard=True)
 
-    await message.answer("Пожалуйста, выберите язык / Iltimos, tilni tanlang:", reply_markup=language_keyboard)
+    await message.answer("Пожалуйста, выберите язык / Iltimos, tilni tanlang:", reply_markup=language_keyboard())
     # await state.set_state(Registration.language)
 
 # @router.message(Registration.language)

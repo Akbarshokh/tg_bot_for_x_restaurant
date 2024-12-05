@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, text, BIGINT
 from utils.config import DB_URL
 from datetime import datetime
 
@@ -99,11 +99,43 @@ class PgConn:
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );""")
 
-    def sms_verify(self, phone_number: str, otp: str, expires_at: datetime):
+    def generate_otp(self, phone_number: str, otp: str, expires_at: datetime):
         """Inserting OTP verification record into the database."""
         with self.conn.connect() as connection:
             connection.execute(
                 text("INSERT INTO sms_verifications (phone, otp, expires_at) VALUES (:phone, :otp, :expires_at)"),
                 {"phone": phone_number, "otp": otp, "expires_at": expires_at}
             )
+
+        return True
+
+    def get_otp_by_phone(self, phone_number: str):
+        """Getting OTP verification record from the database."""
+        with self.conn.connect() as connection:
+            result = connection.execute(
+                text(
+                    "SELECT otp, expires_at, is_verified FROM sms_verifications WHERE phone = :phone ORDER BY created_at DESC LIMIT 1"),
+                {"phone": phone_number}
+            ).fetchone()
+
+        return result
+
+    def verify_otp(self, phone_number: str, otp: str):
+        """Verifying OTP verification record from the database."""
+        with self.conn.connect() as connection:
+            connection.execute(
+                text("UPDATE sms_verifications SET is_verified = true WHERE phone = :phone AND otp = :otp"),
+                {"phone": phone_number, "otp": otp}
+            )
+
+        return True
+
+    def save_user(self, user_data: dict):
+        """Saves user into the database."""
+        with self.conn.connect() as connection:
+            connection.execute(
+                text("INSERT INTO users (telegram_id, name, phone, language) VALUES (:telegram_id, :name, :phone, :language)"),
+                user_data
+            )
+
         return True

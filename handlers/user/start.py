@@ -55,10 +55,10 @@ async def set_phone(message: types.Message, state: FSMContext):
         print(otp)
 
         # Сохраняем SMS-код в базе данных
-        success = db.sms_verify(phone, otp, expires_at)
+        success = db.generate_otp(phone, otp, expires_at)
 
         if success:
-            await state.update_data(phone=phone, otp=otp)
+            await state.update_data(phone=phone)
             await message.answer(f"Мы отправили SMS с кодом на номер {phone}. Введите код:")
             await state.set_state(Registration.confirmation)
         else:
@@ -66,29 +66,40 @@ async def set_phone(message: types.Message, state: FSMContext):
     else:
         await message.answer("Пожалуйста, отправьте корректный номер телефона.")
 
-@router.message(Registration.phone)
+@router.message(Registration.confirmation)
 async def verify_code(message: types.Message, state: FSMContext):
-    data = await state.get_data()
-    otp = data.get('otp')
+    phone = (await state.get_data()).get("phone")
+    entered_code = message.text
 
-    if message.text == otp:
-        user_data = {
-            "telegram_id": message.from_user.id,
-            "name": data['name'],
-            "phone": data['phone'],
-            "language": data['language']
-        }
+    # Checking code from DB
+    otp_record = db.get_otp_by_phone(phone)
 
-        # Сохранение пользователя в базу данных
-        db.conn.execute(
-            text("INSERT INTO users (telegram_id, name, phone, language) VALUES (:telegram_id, :name, :phone, :language)"),
-            user_data
-        )
+    if otp_record:
+        db_otp, expires_at, is_verified = otp_record
 
-        await message.answer("Регистрация успешно завершена! Добро пожаловать!")
-        await state.clear()
+        if is_verified:
+            await message.answer("Этот код уже был использован.")
+        elif datetime.now() > expires_at:
+            await message.answer("Срок действия кода истёк. Попробуйте заново.")
+        elif db_otp == entered_code:
+            _ = db.verify_otp(phone, entered_code)
+
+            user_data = {
+                "telegram_id": message.from_user.id,
+                "phone": phone,
+                "name": (await state.get_data()).get("name"),
+                "language": (await state.get_data()).get("language")
+            }
+
+            # Saving user data into DB
+            _ = db.save_user(user_data)
+
+            await message.answer("Регистрация успешно завершена! Добро пожаловать!")
+            await state.clear()
+        else:
+            await message.answer("Неверный код. Попробуйте снова.")
     else:
-        await message.answer("Неверный код. Попробуйте снова.")
+        await message.answer("Код не найден. Попробуйте ещё раз или запросите новый.")
 
 
 @router.message(lambda message: message.text.lower() in ["повторить код", "повторная отправка"])

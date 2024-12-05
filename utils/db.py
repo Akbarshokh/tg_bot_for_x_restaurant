@@ -1,6 +1,9 @@
-from sqlalchemy import create_engine, text, BIGINT
+import logging
+from sqlalchemy import create_engine, text
 from utils.config import DB_URL
 from datetime import datetime
+
+logging.basicConfig(level=logging.INFO)
 
 class PgConn:
     def __init__(self):
@@ -99,15 +102,24 @@ class PgConn:
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );""")
 
+
     def generate_otp(self, phone_number: str, otp: str, expires_at: datetime):
         """Inserting OTP verification record into the database."""
         with self.conn.connect() as connection:
-            connection.execute(
-                text("INSERT INTO sms_verifications (phone, otp, expires_at) VALUES (:phone, :otp, :expires_at)"),
-                {"phone": phone_number, "otp": otp, "expires_at": expires_at}
-            )
+            try:
+                with connection.begin():
+                    connection.execute(
+                        text(
+                            "INSERT INTO sms_verifications (phone, otp, expires_at) VALUES (:phone, :otp, :expires_at)"),
+                        {"phone": phone_number, "otp": otp, "expires_at": expires_at}
+                    )
+                logging.info("OTP record inserted successfully.")
+            except Exception as e:
+                logging.error(f"Error inserting OTP: {e}")
+                return False
 
         return True
+
 
     def get_otp_by_phone(self, phone_number: str):
         """Getting OTP verification record from the database."""
@@ -120,22 +132,66 @@ class PgConn:
 
         return result
 
+
+
     def verify_otp(self, phone_number: str, otp: str):
         """Verifying OTP verification record from the database."""
         with self.conn.connect() as connection:
-            connection.execute(
-                text("UPDATE sms_verifications SET is_verified = true WHERE phone = :phone AND otp = :otp"),
-                {"phone": phone_number, "otp": otp}
-            )
-
-        return True
+            try:
+                with connection.begin():
+                    result = connection.execute(
+                        text("UPDATE sms_verifications SET is_verified = true WHERE phone = :phone AND otp = :otp"),
+                        {"phone": phone_number, "otp": otp}
+                    )
+                if result.rowcount == 0:
+                    logging.error("OTP not found or already verified.")
+                    return False
+                logging.info("OTP verified successfully.")
+                return True
+            except Exception as e:
+                logging.error(f"Error verifying OTP: {e}")
+                return False
 
     def save_user(self, user_data: dict):
-        """Saves user into the database."""
+        """Saves or updates a user in the database."""
         with self.conn.connect() as connection:
-            connection.execute(
-                text("INSERT INTO users (telegram_id, name, phone, language) VALUES (:telegram_id, :name, :phone, :language)"),
-                user_data
-            )
+            try:
+                with connection.begin():
+                    result = connection.execute(
+                        text("SELECT name, phone, language FROM users WHERE telegram_id = :telegram_id"),
+                        {"telegram_id": user_data["telegram_id"]}
+                    ).fetchone()
 
-        return True
+                    if result:
+                        # Extract existing user details
+                        existing_name, existing_phone, existing_language = result
+
+                        # Check if the data is the same
+                        if (
+                                existing_name == user_data["name"]
+                                and existing_phone == user_data["phone"]
+                                and existing_language == user_data["language"]
+                        ):
+                            return "already_registered"
+
+                        # Update the user if the data is different
+                        connection.execute(
+                            text(
+                                "UPDATE users SET name = :name, phone = :phone, language = :language "
+                                "WHERE telegram_id = :telegram_id"
+                            ),
+                            user_data
+                        )
+                        return "updated"
+                    else:
+                        # Insert a new user
+                        connection.execute(
+                            text(
+                                "INSERT INTO users (telegram_id, name, phone, language) VALUES (:telegram_id, :name, :phone, :language)"
+                            ),
+                            user_data
+                        )
+                        return "inserted"
+            except Exception as e:
+                logging.error(f"Error saving user: {e}")
+                return "error", str(e)

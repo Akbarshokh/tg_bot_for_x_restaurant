@@ -1,12 +1,13 @@
 import random
 from aiogram import Router, types
-from aiogram.types import  ReplyKeyboardMarkup, KeyboardButton
 from aiogram.fsm.context import FSMContext
+
 from states.user import Registration
 from utils.db import PgConn
 from datetime import datetime, timedelta
 from sqlalchemy import text
 from aiogram.filters import CommandStart
+from keyboards.default.main_keyboard import phone_keyboard
 from keyboards.inline.user_inline_keyboards import language_keyboard
 
 from loader import dp
@@ -16,41 +17,22 @@ db = PgConn()
 
 @router.message(CommandStart())
 async def start_registration(message: types.Message):
-    # kb_list = [
-    #     [KeyboardButton(text="🇷🇺 Русский")],
-    #     [KeyboardButton(text="🇺🇿 O'zbekcha")]
-    # ]
-    # keyboard = ReplyKeyboardMarkup(keyboard=kb_list, resize_keyboard=True, one_time_keyboard=True)
-
     await message.answer("Пожалуйста, выберите язык / Iltimos, tilni tanlang:", reply_markup=language_keyboard())
-    # await state.set_state(Registration.language)
-
-# @router.message(Registration.language)
-# async def set_language(message: types.Message, state: FSMContext):
-#     lang = "ru" if message.text == "Русский" else "uz"
-#     await state.update_data(language=lang)
-#     await message.answer("Введите ваше имя / Ismingizni kiriting:", reply_markup=types.ReplyKeyboardRemove())
-#     await state.set_state(Registration.name)
 
 @router.callback_query(lambda c: c.data in ["ru", "uz"])
 async def set_language(call : types.CallbackQuery, state: FSMContext):
     lang = call.data
+    await state.update_data(language=lang)
     await call.message.answer("Введите ваше имя / Ismingizni kiriting:", reply_markup=types.ReplyKeyboardRemove())
     await state.set_state(Registration.name)
     await call.message.delete()
-    
-
-
 
 @router.message(Registration.name)
 async def set_name(message: types.Message, state: FSMContext):
     name = message.text.strip()
     if 2 <= len(name) <= 50:
         await state.update_data(name=name)
-        kb_list =[
-           [KeyboardButton(text="📱 Отправить номер телефона", request_contact=True, one_time_keyboard=True)]
-        ]
-        keyboard = ReplyKeyboardMarkup(keyboard=kb_list, resize_keyboard=True)
+        keyboard = phone_keyboard()
         await message.answer("Пожалуйста, отправьте ваш номер телефона:", reply_markup=keyboard)
         await state.set_state(Registration.phone)
     else:
@@ -94,20 +76,29 @@ async def verify_code(message: types.Message, state: FSMContext):
         elif datetime.now() > expires_at:
             await message.answer("Срок действия кода истёк. Попробуйте заново.")
         elif db_otp == entered_code:
-            _ = db.verify_otp(phone, entered_code)
+            success_otp = db.verify_otp(phone, entered_code)
 
-            user_data = {
-                "telegram_id": message.from_user.id,
-                "phone": phone,
-                "name": (await state.get_data()).get("name"),
-                "language": (await state.get_data()).get("language")
-            }
+            if success_otp:
+                user_data = {
+                    "telegram_id": message.from_user.id,
+                    "phone": phone,
+                    "name": (await state.get_data()).get("name"),
+                    "language": (await state.get_data()).get("language")
+                }
 
-            # Saving user data into DB
-            _ = db.save_user(user_data)
-
-            await message.answer("Регистрация успешно завершена! Добро пожаловать!")
-            await state.clear()
+                # Saving user data into DB
+                success_user_save = db.save_user(user_data)
+                if success_user_save == "inserted":
+                    await message.answer("Регистрация успешно завершена! Добро пожаловать!")
+                    await state.clear()
+                elif success_user_save == "updated":
+                    await message.answer("Регистрация успешно завершена! Добро пожаловать!")
+                    await state.clear()
+                elif success_user_save == "already_registered":
+                    await message.answer("Регистрация успешно завершена! Добро пожаловать!")
+                    await state.clear()
+                elif isinstance(success_user_save, tuple) and success_user_save[0] =="error":
+                    await message.answer("Что-то пошло не так 🥴")
         else:
             await message.answer("Неверный код. Попробуйте снова.")
     else:

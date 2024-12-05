@@ -9,6 +9,7 @@ from sqlalchemy import text
 from aiogram.filters import CommandStart
 from keyboards.default.main_keyboard import phone_keyboard
 from keyboards.inline.user_inline_keyboards import language_keyboard
+from utils.config import answers
 
 from loader import dp
 router = Router()
@@ -23,7 +24,7 @@ async def start_registration(message: types.Message):
 async def set_language(call : types.CallbackQuery, state: FSMContext):
     lang = call.data
     await state.update_data(language=lang)
-    await call.message.answer("Введите ваше имя / Ismingizni kiriting:", reply_markup=types.ReplyKeyboardRemove())
+    await call.message.answer(answers[lang]["get_name"], reply_markup=types.ReplyKeyboardRemove())
     await state.set_state(Registration.name)
     await call.message.delete()
 

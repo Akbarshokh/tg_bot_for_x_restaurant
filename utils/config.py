@@ -1,4 +1,5 @@
 from environs import Env
+import json
 
 # Инициализация environs
 env = Env()
@@ -24,3 +25,6 @@ HTTP_PROXY = env.str("HTTP_PROXY", None)
 PROXY_CONFIG = {
     "proxy": HTTP_PROXY if USE_PROXY else None
 }
+
+with open("utils/phrases.json", "r", encoding="utf-8") as lang_file:
+    answers = json.load(lang_file)

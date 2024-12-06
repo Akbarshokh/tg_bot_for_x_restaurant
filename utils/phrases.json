@@ -31,6 +31,7 @@
     "name_successfully_changed": "Ismingiz muvaffaqiyatli o'zgartirildi!",
 
     "SETTINGS_LANG": "SETTINGS_LANG",
+    "lang_successfully_changed": "Muloqot tili muvaffaqiyatli o'zgartirildi!",
 
     "SETTINGS_PHONE": "SETTINGS_PHONE",
     "set_new_phone": "Yangi telefon raqamingizni yuboring:",
@@ -69,6 +70,7 @@
     "name_successfully_changed": "Имя успешно обновлено!",
 
     "SETTINGS_LANG": "SETTINGS_LANG",
+    "lang_successfully_changed": "Язык успешно изменён!",
 
     "SETTINGS_PHONE": "SETTINGS_PHONE",
     "set_new_phone": "Отправьте новый номер телефона",

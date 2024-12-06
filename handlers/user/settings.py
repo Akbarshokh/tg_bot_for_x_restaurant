@@ -1,10 +1,12 @@
-from aiogram import types
+from aiogram import  types
 from aiogram.fsm.context import FSMContext
-from xdg.Config import language
 
-from handlers.user.start import router,db
-from keyboards.inline.user_inline_keyboards import settings_keyboard, resend_name_or_menu_keyboard
+from handlers.user.start import router,db, dp
+from keyboards.inline.user_inline_keyboards import settings_keyboard, resend_name_or_menu_keyboard, language_keyboard
+from keyboards.default.main_keyboard import get_menu_button
 from utils.config import answers
+
+dp.include_router(router)
 
 @router.message(commands=["settings"])
 async def show_settings(message: types.Message):
@@ -14,17 +16,17 @@ async def show_settings(message: types.Message):
 
     if user_data:
         settings_text = (
-            f"{answers[language]['settings_title']}\n\n"
-            f"{answers[language]['name']}: {users_name}\n"
-            f"{answers[language]['phone']}: {users_phone}\n"
-            f"{answers[language]['language']}: {users_language}\n\n"
-            f"{answers[language]['choose_action']}"
+            f"{answers[users_language]['settings_title']}\n\n"
+            f"{answers[users_language]['name']}: {users_name}\n"
+            f"{answers[users_language]['phone']}: {users_phone}\n"
+            f"{answers[users_language]['language']}: {users_language}\n\n"
+            f"{answers[users_language]['choose_action']}"
         )
 
-        await message.answer(settings_text, reply_markup=settings_keyboard(language))
+        await message.answer(settings_text, reply_markup=settings_keyboard(users_language))
     else:
         await message.answer(
-            answers[language]["no_user_data"] if language in answers else answers["ru"]["no_user_data"]
+            answers[users_language]["no_user_data"] if users_language in answers else answers["ru"]["no_user_data"]
         )
 
 @router.callback_query(lambda call: call.data == "change_name")
@@ -99,18 +101,22 @@ async def retry_phone(call: types.CallbackQuery, state: FSMContext):
     )
     await state.set_state("change_phone")
 
+
 @router.callback_query(lambda call: call.data == "change_language")
 async def change_language(call: types.CallbackQuery):
-    language_keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="Русский", callback_data="set_language_ru")],
-            [InlineKeyboardButton(text="Узбекский", callback_data="set_language_uz")],
-        ]
-    )
-    await call.message.edit_text("Выберите язык:", reply_markup=language_keyboard)
+    await call.message.edit_text("Пожалуйста, выберите язык / Iltimos, tilni tanlang:", reply_markup=language_keyboard())
+    await call.message.delete()
 
-@router.callback_query(lambda call: call.data.startswith("set_language_"))
+@router.callback_query(lambda c: c.data in ["ru", "uz"])
 async def set_language(call: types.CallbackQuery):
-    lang = call.data.split("_")[-1]  # Extract "ru" or "uz"
-    db.update_user_language(call.from_user.id, lang)  # Implement this DB function
-    await call.message.edit_text("Язык успешно изменён!")
+    lang = call.data
+    db.update_user_language(call.from_user.id, lang)
+    await call.message.edit_text(answers[lang]["lang_successfully_changed"])
+
+@router.callback_query(lambda call: call.data == "main_menu")
+async def main_menu(call: types.CallbackQuery):
+    user_language = db.get_user_lang(call.from_user.id)
+    await call.message.edit_text(
+        answers[user_language]["main_menu_text"],
+        reply_markup=get_menu_button(user_language)
+    )

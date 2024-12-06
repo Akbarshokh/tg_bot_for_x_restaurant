@@ -121,6 +121,30 @@ class PgConn:
 
         return True
 
+    def update_otp(self, phone_number: str, otp: str, expires_at: datetime):
+        """
+        Update the OTP and expiration time for the most recent record of a given phone number.
+        """
+        query = """
+        UPDATE sms_verifications
+        SET otp = :otp, expires_at = :expires_at
+        WHERE phone = :phone AND created_at = (
+            SELECT MAX(created_at) FROM sms_verifications WHERE phone = :phone
+        )
+        """
+        with self.conn.connect() as connection:
+            try:
+                with connection.begin():
+                    connection.execute(
+                        text(query),
+                        {"phone": phone_number, "otp": otp, "expires_at": expires_at}
+                    )
+                logging.info("Most recent OTP record updated successfully.")
+            except Exception as e:
+                logging.error(f"Error updating OTP: {e}")
+                return False
+
+        return True
 
     def get_otp_by_phone(self, phone_number: str):
         """Getting OTP verification record from the database."""

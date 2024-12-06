@@ -37,7 +37,7 @@ def get_menu_button(lang: str):
         }
     }
 
-    t = translations.get(lang, translations["ru"])  # Берём переводы для указанного языка, иначе русский
+    t = translations.get(lang, translations["ru"])
 
     return ReplyKeyboardMarkup(
         keyboard=[

@@ -1,16 +1,19 @@
 { "uz": {
-        "get_name": "Ismingizni kiriting",
-        "get_phone": "Iltimos, telefon raqamingizni yuboring:",
-        "name_validation": "Ism 2 dan 50 gacha belgi bo‘lishi kerak. Qayta urinib ko‘ring.",
-        "otp_msg": "{name} biz {phone} raqamiga SMS-kod yubordik. Kodni kiriting:",
-        "otp_send_fail": "SMS yuborishda xatolik yuz berdi.",
-        "phone_validation": "Iltimos, to‘g‘ri telefon raqamini yuboring.",
-        "otp_code_is_used": "Ushbu kod avval ishlatilgan.",
-        "otp_code_expired": "Kodning amal qilish muddati tugadi. Qayta urinib ko‘ring.",
-        "invalid_otp": "Noto‘g‘ri kod. Qayta urinib ko‘ring.",
-        "missing_otp": "Kod topilmadi. Yana bir bor urinib ko‘ring yoki yangi kodni so‘rang.",
-        "successful_registration": "Ro‘yxatdan o‘tish muvaffaqiyatli yakunlandi! Xush kelibsiz!",
-        "registration_fail": "Nimadir noto‘g‘ri ketdi \uD83E\uDD74"
+    "get_name": "Ismingizni kiriting",
+    "get_phone": "Iltimos, telefon raqamingizni yuboring:",
+    "name_validation": "Ism 2 dan 50 gacha belgi bo‘lishi kerak. Qayta urinib ko‘ring.",
+    "otp_msg": "{name} biz {phone} raqamiga SMS-kod yubordik. Kodni kiriting:",
+    "otp_send_fail": "SMS yuborishda xatolik yuz berdi.",
+    "phone_validation": "Iltimos, to‘g‘ri telefon raqamini yuboring.",
+    "otp_code_is_used": "Ushbu kod avval ishlatilgan.",
+    "otp_code_expired": "Kodning amal qilish muddati tugadi. Qayta urinib ko‘ring.",
+    "invalid_otp": "Noto‘g‘ri kod. Qayta urinib ko‘ring.",
+    "missing_otp": "Kod topilmadi. Yana bir bor urinib ko‘ring yoki yangi kodni so‘rang.",
+    "successful_registration": "Ro‘yxatdan o‘tish muvaffaqiyatli yakunlandi! Xush kelibsiz!",
+    "registration_fail": "Nimadir noto‘g‘ri ketdi \uD83E\uDD74",
+    "resend_ready": "Qayta yuborish tugmasi endi faollashdi. Siz yangi kodni so'rashingiz mumkin.",
+    "new_otp_msg": "Yangi kod {phone} raqamiga yuborildi. SMS-ni tekshiring.",
+    "resend_timer": "Qayta yuborish imkoniyati:"
 },
 "ru" : {
     "get_name" : "Введите ваше имя",
@@ -24,6 +27,9 @@
     "invalid_otp": "Неверный код. Попробуйте снова.",
     "missing_otp": "Код не найден. Попробуйте ещё раз или запросите новый.",
     "successful_registration": "Регистрация успешно завершена! Добро пожаловать!",
-    "registration_fail": "Что-то пошло не так \uD83E\uDD74"
+    "registration_fail": "Что-то пошло не так \uD83E\uDD74",
+    "resend_ready": "Кнопка повторной отправки кода теперь активна. Вы можете запросить новый код.",
+    "new_otp_msg": "Новый код отправлен на номер {phone}. Проверьте SMS.",
+    "resend_timer": "Повторная отправка будет доступна через:"
     }
 }

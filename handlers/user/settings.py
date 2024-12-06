@@ -6,7 +6,7 @@ from keyboards.inline.user_inline_keyboards import settings_keyboard, resend_nam
 from keyboards.default.main_keyboard import get_menu_button
 from utils.config import answers
 
-dp.include_router(router)
+# dp.include_router(router)
 
 @router.message(commands=["settings"])
 async def show_settings(message: types.Message):

@@ -1,5 +1,6 @@
 from environs import Env
 import json
+# import os
 
 # Инициализация environs
 env = Env()
@@ -9,6 +10,9 @@ BOT_TOKEN = env.str("BOT_TOKEN")
 
 REDIS_HOST = env.str("REDIS_HOST")
 REDIS_PORT = env.int("REDIS_PORT")
+SHEET_ID = env.str("SHEET_ID")
+KEY = env.json("KEY")
+# KEY = json.loads(os.environ['KEY'])
 
 # Конфигурация базы данных
 # DB_CONFIG = {

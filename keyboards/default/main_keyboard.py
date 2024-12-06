@@ -64,3 +64,21 @@ def help_keyboard(lang: str):
         ],
         resize_keyboard=True
     )
+
+
+reply_kb = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="Option 1"), KeyboardButton(text="Option 2")],
+        [KeyboardButton(text="Option 3")],
+    ],
+    resize_keyboard=True  # Make buttons smaller
+)
+
+async def give_menu(menu):
+    rows = [menu[i:i + 3] for i in range(0, len(menu), 3)]
+    
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+    for row in rows:
+        keyboard.row(*(KeyboardButton(text=btn) for btn in row))
+    
+    return keyboard

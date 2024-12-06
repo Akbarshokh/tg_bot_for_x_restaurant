@@ -6,6 +6,7 @@ from keyboards.inline.user_inline_keyboards import settings_keyboard, resend_nam
 from keyboards.default.main_keyboard import get_menu_button
 from utils.config import answers
 from aiogram.filters.command import Command
+from states.user import Registration
 
 # dp.include_router(router)
 
@@ -42,7 +43,7 @@ async def change_name(call: types.CallbackQuery, state: FSMContext):
 
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-@router.message(state="change_name")
+@router.message(Registration.change_name)
 async def set_new_name(message: types.Message, state: FSMContext):
     telegram_id = message.from_user.id
     user_language = db.get_user_lang(telegram_id)
@@ -77,7 +78,7 @@ async def change_phone(call: types.CallbackQuery, state: FSMContext):
     await call.message.edit_text(answers[user_language]["set_new_phone"])
     await state.set_state("change_phone")
 
-@router.message(state="change_phone")
+@router.message(Registration.change_phone)
 async def set_new_phone(message: types.Message, state: FSMContext):
     user_language = db.get_user_lang(message.from_user.id)
 

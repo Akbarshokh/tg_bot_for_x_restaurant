@@ -5,3 +5,5 @@ class Registration(StatesGroup):
     name = State()
     phone = State()
     confirmation = State()
+    change_name = State()
+    change_phone = State()

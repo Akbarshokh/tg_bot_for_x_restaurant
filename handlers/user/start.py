@@ -78,51 +78,45 @@ async def set_phone(message: types.Message, state: FSMContext):
             await message.answer(answers[lang]["otp_validation"])
     else:
         await message.answer(answers[lang]["phone_validation"])
-
 @router.message(Registration.confirmation)
 async def verify_code(message: types.Message, state: FSMContext):
-    phone = (await state.get_data()).get("phone")
-    lang = (await state.get_data()).get("language")
+    fsm_data = await state.get_data()
+    phone = fsm_data.get("phone")
+    lang = fsm_data.get("language")
     entered_code = message.text
 
-    # Checking code from DB
     otp_record = db.get_otp_by_phone(phone)
+    db_otp, expires_at, is_verified = otp_record
 
-    if otp_record:
-        db_otp, expires_at, is_verified = otp_record
+    if is_verified:
+        await message.answer(answers[lang]["otp_code_is_used"])
+    elif datetime.now() > expires_at:
+        await message.answer(answers[lang]["otp_code_expired"])
+    elif db_otp == entered_code:
+        success_otp = db.verify_otp(phone, entered_code)
 
-        if is_verified:
-            await message.answer(answers[lang]["otp_code_is_used"])
-        elif datetime.now() > expires_at:
-            await message.answer(answers[lang]["otp_code_expired"])
-        elif db_otp == entered_code:
-            success_otp = db.verify_otp(phone, entered_code)
+        if success_otp:
+            user_data = {
+                "telegram_id": message.from_user.id,
+                "phone": phone,
+                "name": fsm_data.get("name"),
+                "language": lang
+            }
 
-            if success_otp:
-                user_data = {
-                    "telegram_id": message.from_user.id,
-                    "phone": phone,
-                    "name": (await state.get_data()).get("name"),
-                    "language": (await state.get_data()).get("language")
-                }
+            success_user_save = db.save_user(user_data)
 
-                # Saving user data into DB
-                success_user_save = db.save_user(user_data)
-                if success_user_save == "inserted":
-                    await message.answer(answers[lang]["successful_registration"],reply_markup=get_menu_button(lang))
-                    await state.clear()
-                elif success_user_save == "updated":
-                    await message.answer(answers[lang]["successful_registration"],reply_markup=get_menu_button(lang))
-                    await state.clear()
-                elif success_user_save == "already_registered":
-                    await message.answer(answers[lang]["successful_registration"],reply_markup=get_menu_button(lang))
-                    await state.clear()
-                elif isinstance(success_user_save, tuple) and success_user_save[0] =="error":
-                    await message.answer(answers[lang]["registration_fail"], reply_markup=help_keyboard(lang))
+            if success_user_save in ["inserted", "updated", "already_registered"]:
+                await message.answer(
+                    answers[lang]["successful_registration"] + "\n\n" + answers[lang]["main_menu_text"],
+                    reply_markup=get_menu_button(lang)
+                )
+                await state.clear()
+            elif isinstance(success_user_save, tuple) and success_user_save[0] == "error":
+                await message.answer(answers[lang]["registration_fail"], reply_markup=help_keyboard(lang))
         else:
             await message.answer(answers[lang]["invalid_otp"])
     else:
-        await message.answer(answers[lang]["missing_otp"])
+        await message.answer(answers[lang]["invalid_otp"])
 
 
 @router.message(lambda message: message.text.lower() in ["повторить код", "повторная отправка"])

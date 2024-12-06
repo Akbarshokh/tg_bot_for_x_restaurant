@@ -230,3 +230,68 @@ class PgConn:
             ).fetchone()
 
         return result
+
+    def get_user_data(self, telegram_id: str):
+        """Getting users data from the database."""
+        with self.conn.connect() as connection:
+            result = connection.execute(
+                text(
+                    "SELECT name, language, phone FROM users WHERE telegram_id = :telegram_id"),
+                {"telegram_id": telegram_id}
+            ).fetchone()
+
+        return result
+
+    def update_user_name(self, telegram_id: int, new_name: str):
+        """Updating users name from the database."""
+        with self.conn.connect() as connection:
+            try:
+                with connection.begin():
+                    result = connection.execute(
+                        text("UPDATE users SET name = :new_name WHERE telegram_id = :telegram_id"),
+                        {"new_name": new_name, "telegram_id": telegram_id}
+                    )
+                if result.rowcount == 0:
+                    logging.error(f"No user found, {new_name}, {telegram_id}")
+                    return False
+                logging.info(f"Name {new_name}, {telegram_id} updated successfully.")
+                return True
+            except Exception as e:
+                logging.error(f"Error: {e}, {telegram_id}, {new_name}")
+                return False
+
+    def update_user_phone(self, telegram_id: int, new_phone: str):
+        """Updating users phone from the database."""
+        with self.conn.connect() as connection:
+            try:
+                with connection.begin():
+                    result = connection.execute(
+                        text("UPDATE users SET phone = :new_phone WHERE telegram_id = :telegram_id"),
+                        {"new_phone": new_phone, "telegram_id": telegram_id}
+                    )
+                if result.rowcount == 0:
+                    logging.error(f"No user found, {new_phone}, {telegram_id}")
+                    return False
+                logging.info(f"Phone {new_phone}, {telegram_id} updated successfully.")
+                return True
+            except Exception as e:
+                logging.error(f"Error: {e}, {telegram_id}, {new_phone}")
+                return False
+
+    def update_user_language(self, telegram_id: int, new_language: str):
+        """Updating users language from the database."""
+        with self.conn.connect() as connection:
+            try:
+                with connection.begin():
+                    result = connection.execute(
+                        text("UPDATE users SET language = :new_language WHERE telegram_id = :telegram_id"),
+                        {"new_language": new_language, "telegram_id": telegram_id}
+                    )
+                if result.rowcount == 0:
+                    logging.error(f"No user found, {new_language}, {telegram_id}")
+                    return False
+                logging.info(f"Language {new_language}, {telegram_id} updated successfully.")
+                return True
+            except Exception as e:
+                logging.error(f"Error: {e}, {telegram_id}, {new_language}")
+                return False

@@ -1,11 +1,12 @@
 { "uz": {
+    "REGISTRATION_LOGIC": "REGISTRATION LOGIC",
     "get_name": "Ismingizni kiriting",
     "get_phone": "Iltimos, telefon raqamingizni yuboring:",
     "name_validation": "Ism 2 dan 50 gacha belgi bo‘lishi kerak. Qayta urinib ko‘ring.",
     "otp_msg": "{name} biz {phone} raqamiga SMS-kod yubordik. Kodni kiriting:",
     "otp_send_fail": "SMS yuborishda xatolik yuz berdi.",
     "phone_validation": "Iltimos, to‘g‘ri telefon raqamini yuboring.",
-    "otp_code_is_used": "Ushbu kod avval ishlatilgan.",
+    "otp_code_is_used": "Ushbu kod allaqachon ishlatilgan.",
     "otp_code_expired": "Kodning amal qilish muddati tugadi. Qayta urinib ko‘ring.",
     "invalid_otp": "Noto‘g‘ri kod. Qayta urinib ko‘ring.",
     "missing_otp": "Kod topilmadi. Yana bir bor urinib ko‘ring yoki yangi kodni so‘rang.",
@@ -13,9 +14,30 @@
     "registration_fail": "Nimadir noto‘g‘ri ketdi \uD83E\uDD74",
     "resend_ready": "Qayta yuborish tugmasi endi faollashdi. Siz yangi kodni so'rashingiz mumkin.",
     "new_otp_msg": "Yangi kod {phone} raqamiga yuborildi. SMS-ni tekshiring.",
-    "resend_timer": "Qayta yuborish imkoniyati:"
+    "resend_timer": "Qayta yuborish imkoniyati:",
+
+    "SETTING_LOGIC": "SETTING LOGIC",
+    "SETTINGS_TEXT": "SETTINGS_TEXT",
+    "settings_title": "Sizning joriy sozlamalaringiz:",
+    "name": "Ism",
+    "language": "Muloqot Tili",
+    "phone": "Telefon raqami",
+    "choose_action": "Qaysi parametrni o‘zgartirmoqchisiz:",
+    "no_user_found": "Sizning ma'lumotlaringiz topilmadi, iltimos qayta ro'yatdan o'ting",
+    "main_menu_text": "Siz bosh menyudasiz. Amalni tanlang.",
+
+    "SETTINGS_NAME": "SETTINGS_NAME",
+    "set_new_name": "Yangi ismingizni kiriting:",
+    "name_successfully_changed": "Ismingiz muvaffaqiyatli o'zgartirildi!",
+
+    "SETTINGS_LANG": "SETTINGS_LANG",
+
+    "SETTINGS_PHONE": "SETTINGS_PHONE",
+    "set_new_phone": "Yangi telefon raqamingizni yuboring:",
+    "phone_successfully_changed": "Yangi telefon raqam muvaffaqiyatli o'zgartirildi!"
 },
 "ru" : {
+    "REGISTRATION_LOGIC": "REGISTRATION LOGIC",
     "get_name" : "Введите ваше имя",
     "get_phone" : "Пожалуйста, отправьте ваш номер телефона:",
     "name_validation" : "Имя должно содержать от 2 до 50 символов. Попробуйте снова.",
@@ -30,6 +52,26 @@
     "registration_fail": "Что-то пошло не так \uD83E\uDD74",
     "resend_ready": "Кнопка повторной отправки кода теперь активна. Вы можете запросить новый код.",
     "new_otp_msg": "Новый код отправлен на номер {phone}. Проверьте SMS.",
-    "resend_timer": "Повторная отправка будет доступна через:"
-    }
+    "resend_timer": "Повторная отправка будет доступна через:",
+
+    "SETTING_LOGIC": "SETTING LOGIC",
+    "SETTINGS_TEXT": "SETTINGS_TEXT",
+    "settings_title": "Ваши текущие настройки:",
+    "name": "Имя",
+    "language": "Язык",
+    "phone": "Номер телефона",
+    "choose_action": "Выберите, что вы хотите изменить:",
+    "no_user_found": "У вас нет данных, пожалуйста пройдите регистрацию",
+    "main_menu_text": "Вы в главном меню. Выберите действие.",
+
+    "SETTINGS_NAME": "SETTINGS_NAME",
+    "set_new_name": "Введите новое имя:",
+    "name_successfully_changed": "Имя успешно обновлено!",
+
+    "SETTINGS_LANG": "SETTINGS_LANG",
+
+    "SETTINGS_PHONE": "SETTINGS_PHONE",
+    "set_new_phone": "Отправьте новый номер телефона",
+    "phone_successfully_changed": "Номер телефона успешно обновлён!"
+}
 }

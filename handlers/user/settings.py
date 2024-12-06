@@ -5,10 +5,11 @@ from handlers.user.start import router,db, dp
 from keyboards.inline.user_inline_keyboards import settings_keyboard, resend_name_or_menu_keyboard, language_keyboard
 from keyboards.default.main_keyboard import get_menu_button
 from utils.config import answers
+from aiogram.filters.command import Command
 
 # dp.include_router(router)
 
-@router.message(commands=["settings"])
+@router.message(Command(commands=["settings"]))
 async def show_settings(message: types.Message):
     telegram_id = message.from_user.id
     user_data = db.get_user_data(telegram_id)

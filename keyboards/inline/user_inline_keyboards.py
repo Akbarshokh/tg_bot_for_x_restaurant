@@ -12,6 +12,17 @@ def language_keyboard():
         ]
     )
 
+def language_change_keyboard():
+    """
+    Клавиатура для выбора языка.
+    """
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="Русский 🇷🇺", callback_data="change_ru")],
+            [InlineKeyboardButton(text="O‘zbekcha 🇺🇿", callback_data="change_uz")],
+        ]
+    )
+
 def resend_otp_keyboard(lang: str, active: bool = True):
     translations = {
         "ru": {
@@ -46,7 +57,7 @@ def settings_keyboard(lang: str):
             "change_name": "Имя",
             "change_phone": "Телефон",
             "change_language": "Язык",
-            "main_menu": "Главное меню"
+            "main_menu": "⬅️ ️️Главное меню"
         },
         "uz": {
             "change_name": "Ism",
@@ -59,22 +70,23 @@ def settings_keyboard(lang: str):
 
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text=t["change_name"], callback_data="change_name")],
-            [InlineKeyboardButton(text=t["change_phone"], callback_data="change_phone")],
-            [InlineKeyboardButton(text=t["change_language"], callback_data="change_language")],
+            [
+                InlineKeyboardButton(text=t["change_name"], callback_data="change_name"),
+                InlineKeyboardButton(text=t["change_phone"], callback_data="change_phone"),
+                InlineKeyboardButton(text=t["change_language"], callback_data="change_language"),
+            ],
             [InlineKeyboardButton(text=t["main_menu"], callback_data="main_menu")],
         ]
     )
-
 def resend_name_or_menu_keyboard(lang: str):
     translations = {
         "ru": {
             "retry_name": "Попробовать снова",
-            "main_menu": "Главное меню",
+            "main_menu": "⬅️ Главное меню",
         },
         "uz": {
             "retry_name": "Qayta urinib ko'rish",
-            "main_menu": "Bosh menyu",
+            "main_menu": "⬅️ Bosh menyu",
         }
     }
 
@@ -91,11 +103,11 @@ def resend_phone_or_menu_keyboard(lang: str):
     translations = {
         "ru": {
             "retry_phone": "Попробовать снова",
-            "main_menu": "Главное меню",
+            "main_menu": "⬅️ Главное меню",
         },
         "uz": {
             "retry_phone": "Qayta urinib ko'rish",
-            "main_menu": "Bosh menyu",
+            "main_menu": "⬅️ Bosh menyu",
         }
     }
 
@@ -104,6 +116,24 @@ def resend_phone_or_menu_keyboard(lang: str):
     return  InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text=t["retry_phone"], callback_data="retry_phone")],
+            [InlineKeyboardButton(text=t["main_menu"], callback_data="main_menu")],
+        ]
+    )
+
+def resend_menu_keyboard(lang: str):
+    translations = {
+        "ru": {
+            "main_menu": "⬅️ Главное меню",
+        },
+        "uz": {
+            "main_menu": "⬅️ Bosh menyu",
+        }
+    }
+
+    t = translations.get(lang, translations["ru"])
+
+    return  InlineKeyboardMarkup(
+        inline_keyboard=[
             [InlineKeyboardButton(text=t["main_menu"], callback_data="main_menu")],
         ]
     )

@@ -5,5 +5,10 @@ class Registration(StatesGroup):
     name = State()
     phone = State()
     confirmation = State()
+
+class Settings(StatesGroup):
     change_name = State()
     change_phone = State()
+
+class FeedbackStates(StatesGroup):
+    waiting_for_feedback = State()

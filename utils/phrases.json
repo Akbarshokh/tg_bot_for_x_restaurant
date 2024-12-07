@@ -35,7 +35,12 @@
 
     "SETTINGS_PHONE": "SETTINGS_PHONE",
     "set_new_phone": "Yangi telefon raqamingizni yuboring:",
-    "phone_successfully_changed": "Yangi telefon raqam muvaffaqiyatli o'zgartirildi!"
+    "phone_successfully_changed": "Yangi telefon raqam muvaffaqiyatli o'zgartirildi!",
+
+    "FEEDBACK": "FEEDBACK",
+    "feedback_text": "Iltimos, o'z fikr-mulohazangizni yozib qoldiring:",
+    "feedback_successful": "Fikr-mulohazangiz uchun rahmat! Bu biz uchun juda muhim.",
+    "feedback_failed": "Fikr-mulohaza saqlashda xatolik yuz berdi. Iltimos, keyinroq urinib ko'ring."
 },
 "ru" : {
     "REGISTRATION_LOGIC": "REGISTRATION LOGIC",
@@ -74,6 +79,11 @@
 
     "SETTINGS_PHONE": "SETTINGS_PHONE",
     "set_new_phone": "Отправьте новый номер телефона",
-    "phone_successfully_changed": "Номер телефона успешно обновлён!"
+    "phone_successfully_changed": "Номер телефона успешно обновлён!",
+
+    "FEEDBACK": "FEEDBACK",
+    "feedback_text": "Пожалуйста, напишите ваш отзыв:",
+    "feedback_successful": "Спасибо за ваш отзыв! Мы ценим ваше мнение.",
+    "feedback_failed": "Произошла ошибка при сохранении отзыва. Пожалуйста, попробуйте позже."
 }
 }

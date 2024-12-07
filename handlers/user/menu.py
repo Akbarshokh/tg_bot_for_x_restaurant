@@ -2,7 +2,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from utils.config import KEY,SHEET_ID
 import gspread as gd
 import pandas as pd
-from handlers.user.start import router
+from handlers.user.start import start_router
 from aiogram import types
 from keyboards.default.main_keyboard import give_menu
 
@@ -16,7 +16,7 @@ def get_google_sheet_datas():
     return df
 
 
-@router.message(lambda message: message.text.lower() in ["Меню 📋", "Menyu 📋"])
+@start_router.message(lambda message: message.text.lower() in ["Меню 📋", "Menyu 📋"])
 async def resend_code(message: types.Message):
     if message.text == "Меню 📋":
         language = "ru"

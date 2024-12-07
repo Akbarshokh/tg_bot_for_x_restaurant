@@ -63,6 +63,7 @@ CREATE TABLE dishes (
 CREATE TABLE feedback (
     id UUID DEFAULT uuid_generate_v4() NOT NULL PRIMARY KEY,
     user_id UUID REFERENCES users ON DELETE CASCADE,
+    user_name VARCHAR(50) NOT NULL,
     message TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

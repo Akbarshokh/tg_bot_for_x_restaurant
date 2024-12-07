@@ -11,16 +11,17 @@ from keyboards.default.main_keyboard import phone_keyboard, get_menu_button, hel
 from keyboards.inline.user_inline_keyboards import language_keyboard
 from utils.config import answers
 
-from loader import dp
-router = Router()
-dp.include_router(router)
+# from main import dp
+
+start_router = Router()
+# dp.include_router(start_router)
 db = PgConn()
 
-@router.message(CommandStart())
+@start_router.message(CommandStart())
 async def start_registration(message: types.Message):
     await message.answer("Пожалуйста, выберите язык / Iltimos, tilni tanlang:", reply_markup=language_keyboard())
 
-@router.callback_query(lambda c: c.data in ["ru", "uz"])
+@start_router.callback_query(lambda c: c.data in ["ru", "uz"])
 async def set_language(call : types.CallbackQuery, state: FSMContext):
     lang = call.data
     await state.update_data(language=lang)
@@ -28,7 +29,7 @@ async def set_language(call : types.CallbackQuery, state: FSMContext):
     await state.set_state(Registration.name)
     await call.message.delete()
 
-@router.message(Registration.name)
+@start_router.message(Registration.name)
 async def set_name(message: types.Message, state: FSMContext):
     name = message.text.strip()
     # Getting user lang
@@ -43,7 +44,7 @@ async def set_name(message: types.Message, state: FSMContext):
     else:
         await message.answer(answers[lang]["name_validation"])
 
-@router.message(Registration.phone)
+@start_router.message(Registration.phone)
 async def set_phone(message: types.Message, state: FSMContext):
     lang = (await state.get_data()).get("language")
     name = (await state.get_data()).get("name")
@@ -78,7 +79,7 @@ async def set_phone(message: types.Message, state: FSMContext):
             await message.answer(answers[lang]["otp_validation"])
     else:
         await message.answer(answers[lang]["phone_validation"])
-@router.message(Registration.confirmation)
+@start_router.message(Registration.confirmation)
 async def verify_code(message: types.Message, state: FSMContext):
     fsm_data = await state.get_data()
     phone = fsm_data.get("phone")
@@ -119,17 +120,17 @@ async def verify_code(message: types.Message, state: FSMContext):
         await message.answer(answers[lang]["invalid_otp"])
 
 
-@router.message(lambda message: message.text.lower() in ["повторить код", "повторная отправка"])
-async def resend_code(message: types.Message, state: FSMContext):
-    data = await state.get_data()
-    phone = data.get('phone')
-    otp = str(random.randint(100000, 999999))
-    expires_at = datetime.now() + timedelta(minutes=5)
-
-    # Обновляем код в базе данных
-    db.conn.execute(
-        text("UPDATE sms_verifications SET otp=:otp, expires_at=:expires_at WHERE phone=:phone"),
-        {"otp": otp, "expires_at": expires_at, "phone": phone}
-    )
-
-    await message.answer(f"Новый код отправлен на номер {phone}. Проверьте SMS.")
+# @start_router.message(lambda message: message.text.lower() in ["повторить код", "повторная отправка"])
+# async def resend_code(message: types.Message, state: FSMContext):
+#     data = await state.get_data()
+#     phone = data.get('phone')
+#     otp = str(random.randint(100000, 999999))
+#     expires_at = datetime.now() + timedelta(minutes=5)
+#
+#     # Обновляем код в базе данных
+#     db.conn.execute(
+#         text("UPDATE sms_verifications SET otp=:otp, expires_at=:expires_at WHERE phone=:phone"),
+#         {"otp": otp, "expires_at": expires_at, "phone": phone}
+#     )
+#
+#     await message.answer(f"Новый код отправлен на номер {phone}. Проверьте SMS.")

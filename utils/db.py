@@ -236,7 +236,7 @@ class PgConn:
         with self.conn.connect() as connection:
             result = connection.execute(
                 text(
-                    "SELECT name, language, phone FROM users WHERE telegram_id = :telegram_id"),
+                    "SELECT id, name, language, phone FROM users WHERE telegram_id = :telegram_id"),
                 {"telegram_id": telegram_id}
             ).fetchone()
 
@@ -295,3 +295,20 @@ class PgConn:
             except Exception as e:
                 logging.error(f"Error: {e}, {telegram_id}, {new_language}")
                 return False
+
+    def save_feedback(self, db_user_id: str, user_name: str, message: str):
+        """Inserting feedback into the database."""
+        with self.conn.connect() as connection:
+            try:
+                with connection.begin():
+                    connection.execute(
+                        text(
+                            "INSERT INTO feedback (user_id, user_name, message) VALUES (:user_id, :user_name, :message)"),
+                        {"user_id": db_user_id, "user_name": user_name, "message": message}
+                    )
+                logging.info(f"Feedback inserted successfully. User: {user_name}, Feedback: {message}")
+            except Exception as e:
+                logging.error(f"Error inserting: {e}, User: {user_name}, Feedback: {message}")
+                return False
+
+        return True
